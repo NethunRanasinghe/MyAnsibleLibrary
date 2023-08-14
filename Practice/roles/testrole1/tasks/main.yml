@@ -1,0 +1,17 @@
+---
+- name: Make sure Web Server is running
+  hosts: localhost
+  become: true
+  vars:
+    webserver_message: "This is my message"
+
+  tasks:
+    - name: Start httpd
+      ansible.builtin.service:
+        name: apache2
+        state: started
+
+    - name: Create index.html using Jinja2
+      ansible.builtin.template:
+        src: jinja2.j2
+        dest: /var/www/html/index.html

@@ -1,0 +1,12 @@
+---
+
+- name: Loop Example
+  hosts: localhost
+  become: true
+  vars:
+    packages: [git, nano]
+
+  tasks:
+    - name: Install Mentioned Packages
+      ansible.builtin.apt:
+        name: '{{ packages }}'

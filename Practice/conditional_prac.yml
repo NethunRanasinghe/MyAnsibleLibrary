@@ -1,0 +1,5 @@
+---
+- name: Update All The Packages
+  hosts:  localhost
+  become: true
+  

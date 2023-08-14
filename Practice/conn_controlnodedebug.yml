@@ -1,0 +1,10 @@
+---
+- name: Debug Local Machine
+  hosts: localhost
+  connection: local # Bypass SSH
+
+  tasks:
+    - name: Get local information
+      ansible.builtin.debug:
+        var: hostvars[inventory_hostname]
+        verbosity: 1

@@ -1,0 +1,8 @@
+---
+
+- name: Testing Roles Behaviours
+  hosts: localhost
+  become: true
+
+  roles:
+    - testrole1
