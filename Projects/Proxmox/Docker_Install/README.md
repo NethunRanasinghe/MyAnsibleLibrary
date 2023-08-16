@@ -24,3 +24,5 @@
 
 10. Install Docker Engine and other required packages.
 11. Verify Installation using `community.docker.docker_container` module.
+
+![Result](https://github.com/NethunRanasinghe/MyAssets/blob/main/MyAnsibleLibrary/Projects/Proxmox/Docker_Install/terminal.jpg)
