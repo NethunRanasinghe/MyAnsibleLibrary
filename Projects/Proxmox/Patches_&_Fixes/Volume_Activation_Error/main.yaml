@@ -1,0 +1,49 @@
+---
+
+- name: Proxmox Node Volume Activation Error Fix and Start VMs
+  hosts: nodes
+  become: true
+  vars:
+    start_vms: [551, 552, 300, 400]
+
+  tasks:
+    - name: (1/4) Command 'lvchange -an /dev/mapper/Section--02-Section--02_tdata'
+      ansible.builtin.command: lvchange -an /dev/mapper/Section--02-Section--02_tdata
+      ignore_errors: true
+      register: ignore_errors_cone
+      changed_when: false
+
+    - name: (2/4) Comamnd 'lvchange -an /dev/mapper/Section--02-Section--02_tmeta'
+      ansible.builtin.command: lvchange -an /dev/mapper/Section--02-Section--02_tmeta
+      ignore_errors: true
+      register: ignore_errors_ctwo
+      changed_when: false
+
+    - name: (3/4) Command 'lvchange -ay /dev/mapper/Section--02-Section--02' (This will take some time !)
+      ansible.builtin.command: lvchange -ay /dev/mapper/Section--02-Section--02
+      ignore_errors: true
+      register: ignore_errors_cthree
+      changed_when: false
+
+    - name: (4/4) Start Failed VMs
+      ansible.builtin.command: 'qm start {{ item }}'
+      with_items:
+        - '{{ start_vms }}'
+      loop_control:
+        pause: 15
+      changed_when: false
+
+    - name: Errors Found During Execution (1/3)
+      ansible.builtin.debug:
+        msg: 'Command (1/3) - {{ ignore_errors_cone }}'
+      when: ignore_errors_cone.rc != 0
+
+    - name: Errors Found During Execution (2/3)
+      ansible.builtin.debug:
+        msg: 'Command (2/3) - {{ ignore_errors_ctwo }}'
+      when: ignore_errors_ctwo.rc != 0
+
+    - name: Errors Found During Execution (3/3)
+      ansible.builtin.debug:
+        msg: 'Command (3/3) - {{ ignore_errors_cthree }}'
+      when: ignore_errors_cthree.rc != 0
