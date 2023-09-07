@@ -9,34 +9,34 @@
     docker_packages: [docker-ce, docker-ce-cli, containerd.io, docker-buildx-plugin, docker-compose-plugin]
 
   tasks:
-    - name: Test Reacheability
+    - name: (1/13) Test Reacheability
       ansible.builtin.ping:
 
-    - name: Update Cache
+    - name: (2/13) Update Cache
       ansible.builtin.apt:
         update_cache: true
         autoclean: true
 
-    - name: Upgrade All the Packages to the latest
+    - name: (3/13) Upgrade All the Packages to the latest
       ansible.builtin.apt:
         upgrade: "full"
 
-    - name: Remove (if available) conflicting packages
+    - name: (4/13) Remove (if available) conflicting packages
       ansible.builtin.apt:
         name: '{{ uninstall_packages }}'
         state: absent
 
-    - name: Update Cache
+    - name: (5/13) Update Cache
       ansible.builtin.apt:
         update_cache: true
         autoclean: true
 
-    - name: Install packages to allow apt to use a repository over HTTPS
+    - name: (6/13) Install packages to allow apt to use a repository over HTTPS
       ansible.builtin.apt:
         name: '{{ pre_setup_packages }}'
 
     # https://github.com/modem7/Ansible/blob/master/tasks/docker_install.yaml
-    - name: Remove gpg keys if they exist # otherwise GPG doesn't run if file already exists
+    - name: (7/13) Remove gpg keys if they exist # otherwise GPG doesn't run if file already exists
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
@@ -45,7 +45,7 @@
         - /usr/share/keyrings/docker-archive-keyring.gpg_armored
 
     # https://github.com/modem7/Ansible/blob/master/tasks/docker_install.yaml
-    - name: Download Docker gpg key
+    - name: (8/13) Download Docker gpg key
       ansible.builtin.get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
         dest: /usr/share/keyrings/docker-archive-keyring.gpg_armored
@@ -53,15 +53,15 @@
         checksum: sha256:1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570 # curl -sL https://download.docker.com/linux/ubuntu/gpg|sha256sum
 
     # https://github.com/modem7/Ansible/blob/master/tasks/docker_install.yaml
-    - name: De-Armor Docker GPG key
+    - name: (9/13) De-Armor Docker GPG key
       ansible.builtin.shell: gpg --dearmor < /usr/share/keyrings/docker-archive-keyring.gpg_armored > /usr/share/keyrings/docker-archive-keyring.gpg
       no_log: true
       args:
         creates: /usr/share/keyrings/docker-archive-keyring.gpg
 
     # https://github.com/modem7/Ansible/blob/master/tasks/docker_install.yaml
-    # https://git.deuxfleurs.fr/Deuxfleurs/infrastructure/src/commit/7852eef5a6d0eefc5914f178549f6845857a5c49/os/config/roles/common/tasks/docker.yml
-    - name: Add Docker's repository to APT sources list
+    # https://git.deuxfleurs.fr/Deuxfleurs/infrastructure/src/commit/7852eef5a6d0eefc5913f178549f6845857a5c49/os/config/roles/common/tasks/docker.yml
+    - name: (10/13) Add Docker's repository to APT sources list
       ansible.builtin.apt_repository:
         repo: >
           deb [arch={{ architecture_map[ansible_architecture] }}
@@ -78,11 +78,19 @@
           "armhf": "armhf"
           "armv7l": "armhf"
 
-    - name: Install Docker Engine
+    - name: (11/13) Install Docker Engine
       ansible.builtin.apt:
         name: '{{ docker_packages }}'
 
-    - name: Verify Docker Engine installation is successful
+    # This is for lxc containers because it seems like some doesn't come with requests package. Because of that the last step fails.
+    - name: (12/13) Install 'requests' if unavailable
+      ansible.builtin.pip:
+        name:
+          - requests
+      tags:
+        - test
+
+    - name: (13/13) Verify Docker Engine installation is successful
       community.docker.docker_container:
         name: hello-world
         image: hello-world
