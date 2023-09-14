@@ -1,7 +1,7 @@
 ---
 
 - name: "Update All"
-  hosts: all
+  hosts: linux
   become: true
 
   tasks:
