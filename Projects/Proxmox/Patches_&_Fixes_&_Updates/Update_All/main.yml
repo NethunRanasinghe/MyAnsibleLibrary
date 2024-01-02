@@ -1,18 +1,16 @@
----
-
 - name: "Update All"
   hosts: linux
   become: true
+  gather_facts: true
 
   tasks:
     - name: "(1/3) - Check Reachability"
       ansible.builtin.ping:
 
     - name: "(2/3) - Update Cache"
-      ansible.builtin.apt:
-        update_cache: true
-        autoclean: true
+      ansible.builtin.package_facts:
+        manager: auto
 
     - name: "(3/3) - Upgrade Packages to the Latest"
-      ansible.builtin.apt:
-        upgrade: "full"
+      ansible.builtin.package_upgrade:
+        manager: "{{ 'dnf' if ansible_facts['distribution'] == 'Fedora' else 'apt' }}"

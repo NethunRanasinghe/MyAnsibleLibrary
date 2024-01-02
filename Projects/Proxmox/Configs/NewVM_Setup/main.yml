@@ -1,0 +1,60 @@
+---
+
+- name: "Config VMs"
+  hosts: "{{ host | default('linux') }}"
+  become: true
+  vars:
+    packages_to_install: ['qemu-guest-agent', 'git', 'zsh', 'nala']
+    files_to_copy: ['.p10k.zsh', 'powerlevel10k']
+
+  tasks:
+    - name: "(1/8) - Check Reachability"
+      ansible.builtin.ping:
+
+    - name: "(2/8) - Update Cache"
+      ansible.builtin.apt:
+        update_cache: true
+        autoclean: true
+
+    - name: "(3/8) - Upgrade Packages To The Latest"
+      ansible.builtin.apt:
+        upgrade: "full"
+
+    - name: "(4/8) - Install Pre-Req Packages"
+      ansible.builtin.apt:
+        name: "{{ packages_to_install }}"
+        state: present
+
+    - name: "(5/8) - Clone dotfiles Repo"
+      ansible.builtin.git:
+        repo: https://github.com/NethunRanasinghe/dotfiles.git
+        dest: dotfiles
+        single_branch: true
+        version: main
+
+    - name: "(6/8) - Copy powerlevel10k"
+      ansible.builtin.copy:
+        remote_src: true
+        src: dotfiles/powerlevel10k
+        dest: powerlevel10k
+        mode: '755'
+
+    - name: "(7/8) - Copy .p10k.zsh"
+      ansible.builtin.copy:
+        remote_src: true
+        src: dotfiles/.p10k.zsh
+        dest: .p10k.zsh
+        mode: '755'
+
+    - name: "(8/9) - Check all the files exist or not"
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      with_items: "{{ files_to_copy }}"
+      register: file_stats
+      ignore_errors: true
+
+    - name: "(9/9) - Fail if any file does not exist"
+      ansible.builtin.fail:
+        msg: "File '{{ item.item }}' does not exist!"
+      when: not item.stat.exists
+      loop: "{{ file_stats.results }}"
