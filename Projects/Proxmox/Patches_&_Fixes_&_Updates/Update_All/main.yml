@@ -1,16 +1,26 @@
+---
+
 - name: "Update All"
   hosts: linux
   become: true
-  gather_facts: true
 
   tasks:
-    - name: "(1/3) - Check Reachability"
+    - name: "Check Reachability"
       ansible.builtin.ping:
 
-    - name: "(2/3) - Update Cache"
-      ansible.builtin.package_facts:
-        manager: auto
+    - name: "Update APT Cache"
+      ansible.builtin.apt:
+        update_cache: true
+        autoclean: true
+      when: ansible_facts['os_family'] == 'Debian'
 
-    - name: "(3/3) - Upgrade Packages to the Latest"
-      ansible.builtin.package_upgrade:
-        manager: "{{ 'dnf' if ansible_facts['distribution'] == 'Fedora' else 'apt' }}"
+    - name: "Upgrade APT Packages to the Latest"
+      ansible.builtin.apt:
+        upgrade: "full"
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: "Upgrade DNF Packages"
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+      when: ansible_facts['os_family'] == 'RedHat'
