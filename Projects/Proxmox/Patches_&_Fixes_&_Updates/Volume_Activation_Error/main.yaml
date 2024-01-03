@@ -4,31 +4,40 @@
   hosts: nodes
   become: true
   vars:
-    start_vms: [205]
+    start_vms: []
+    start_containers: [205]
 
   tasks:
-    - name: (1/4) Command 'lvchange -an /dev/mapper/Section--02-Section--02_tdata'
+    - name: (1/5) Command 'lvchange -an /dev/mapper/Section--02-Section--02_tdata'
       ansible.builtin.command: lvchange -an /dev/mapper/Section--02-Section--02_tdata
       ignore_errors: true
       register: ignore_errors_cone
       changed_when: false
 
-    - name: (2/4) Comamnd 'lvchange -an /dev/mapper/Section--02-Section--02_tmeta'
+    - name: (2/5) Comamnd 'lvchange -an /dev/mapper/Section--02-Section--02_tmeta'
       ansible.builtin.command: lvchange -an /dev/mapper/Section--02-Section--02_tmeta
       ignore_errors: true
       register: ignore_errors_ctwo
       changed_when: false
 
-    - name: (3/4) Command 'lvchange -ay /dev/mapper/Section--02-Section--02' (This will take some time !)
+    - name: (3/5) Command 'lvchange -ay /dev/mapper/Section--02-Section--02' (This will take some time !)
       ansible.builtin.command: lvchange -ay /dev/mapper/Section--02-Section--02
       ignore_errors: true
       register: ignore_errors_cthree
       changed_when: false
 
-    - name: (4/4) Start Failed VMs
+    - name: (4/5) Start Failed VMs
       ansible.builtin.command: 'qm start {{ item }}'
       with_items:
         - '{{ start_vms }}'
+      loop_control:
+        pause: 15
+      changed_when: false
+
+    - name: (5/5) Start Failed Containers
+      ansible.builtin.command: 'pct start {{ item }}'
+      with_items:
+        - '{{ start_containers }}'
       loop_control:
         pause: 15
       changed_when: false
