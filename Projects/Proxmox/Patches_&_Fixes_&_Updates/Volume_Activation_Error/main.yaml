@@ -4,7 +4,7 @@
   hosts: nodes
   become: true
   vars:
-    start_vms: [551, 552, 300]
+    start_vms: [205]
 
   tasks:
     - name: (1/4) Command 'lvchange -an /dev/mapper/Section--02-Section--02_tdata'
