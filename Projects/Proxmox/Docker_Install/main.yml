@@ -89,9 +89,12 @@
 
     - name: (12/16) Install DNF and EPEL repository (for Red Hat-based systems)
       ansible.builtin.dnf:
-        name: "dnf epel-release"
+        name:
+          - dnf
+          - epel-release
         state: present
       when: ansible_facts['os_family'] == 'RedHat'
+
 
     - name: (13/16) Install Docker Engine (for Red Hat-based systems)
       ansible.builtin.dnf:
